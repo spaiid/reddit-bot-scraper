@@ -20,6 +20,30 @@ const self = {
     });
   },
 
+  login: async (username, password) => {
+      await self.page.goto(BASE_URL, {waitUntil: "networkidle2"});
+
+      await self.page.type('input[name="user"]', username, {delay: 30});
+      await self.page.type('input[name="passwd"]', password, {delay: 30});
+
+      await self.page.click(`#login_login-main > div.submit > button`);
+
+      await self.page.waitFor('form[action="https://old.reddit.com/logout"], div[class="status error"]');
+      let error = await self.page.$('div[class="status error"]');
+
+      if(error){
+        let errorMessage = await (await error.getProperty('innerText')).jsonValue();
+
+        console.log(`${username} failed to log in.`);
+        console.log(`Error from website: ${errorMessage}`);
+        process.exit(1);
+      } else {
+
+        console.log(`${username} is now logged in.`);
+
+      }
+  },
+
   close: async () => {
     await self.browser.close();
   },
@@ -30,6 +54,41 @@ const self = {
     );
 
     return self;
+  },
+
+  vote: async (subreddit, type = 'upvote', numPosts = 1) => {
+    
+    // Go to subreddit 
+    await self.page.goto(SUBREDDIT_URL(subreddit), {waitUntil: "networkidle2"});
+
+    // Iterate over posts
+    let elements = await self.page.$$('#siteTable > div[class*="thing"]');
+    let totalVotes = 0;
+
+    for (const element of elements) {
+      if(totalVotes >= numPosts) break;
+
+      let button = null;
+
+      switch(type) {
+        case 'upvote':
+
+          button = await element.$('div[data-event-action="upvote"]');
+
+        break;
+
+        case 'downvote':
+
+          button = await element.$('div[data-event-action="downvote"]');
+
+        break;
+      }
+
+      await button.click();
+      totalVotes++;
+
+    }
+
   },
 
   get: async opts => {
