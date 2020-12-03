@@ -64,3 +64,15 @@ const results = await reddit.getLatestNew();
 ```
 
 ## Contributions welcome
+
+## Logging in and voting
+
+You will need to have a reddit account, and when calling the login function from index.js, pass in your username and password.
+Then call the vote function, and pass in the subreddit, upvote/downvote, and number of posts to upvote/downvote.
+
+Example: 
+
+  await reddit.login('Realistic-Cheetah-67', 'pswd');
+
+  await reddit.vote('node', 'upvote', 10);
+
